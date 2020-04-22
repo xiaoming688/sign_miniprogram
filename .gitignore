@@ -1,0 +1,4 @@
+sign_miniprogram/.idea/
+*.iml
+*.class
+/target/

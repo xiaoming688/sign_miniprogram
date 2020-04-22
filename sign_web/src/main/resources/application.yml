@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: sign_miniprogram
+  profiles:
+    active: dev
+
+
+  servlet:
+    multipart:
+      max-file-size: 50Mb
+      max-request-size: 50Mb
+
+logging:
+  config: classpath:config/logback-spring.xml
+
+
