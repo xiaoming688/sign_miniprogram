@@ -34,11 +34,14 @@ public class TestController {
         return result;
     }
 
-    @PostMapping("/login")
-    public MData userLogin(@RequestBody @Validated LoginDto loginDto) {
-        log.info("loginDto {}", loginDto);
+    @GetMapping("/getUserOpenId/{openId}")
+    public MData getUserOpenId(@PathVariable String openId) {
         MData result = new MData();
 
+        User user = userService.queryUserByOpenId(openId);
+        result.setData(user);
+        log.info("getUser {}", user);
         return result;
     }
+
 }

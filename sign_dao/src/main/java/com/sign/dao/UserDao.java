@@ -17,4 +17,6 @@ import org.springframework.stereotype.Repository;
 public interface UserDao extends BaseMapper<User> {
     @Select("SELECT * FROM user WHERE id = #{id}")
     User queryUserById(@Param("id") Integer id);
+    @Select("SELECT * FROM user WHERE open_id = #{openId}")
+    User queryUserByOpenId(@Param("openId") String openId);
 }
