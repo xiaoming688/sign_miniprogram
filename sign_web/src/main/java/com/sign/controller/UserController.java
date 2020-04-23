@@ -7,6 +7,7 @@ import com.sign.pojo.LoginParam;
 import com.sign.pojo.UserDetailDto;
 import com.sign.service.UserService;
 import com.sign.util.*;
+import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -15,8 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
-
+@Api(tags = "小程序登录接口", description = "")
 @Slf4j
 @RestController
 @RequestMapping("/sign")
@@ -25,14 +25,19 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-
+    /**
+     * 授权登录 onlogin
+     *
+     * @param loginParam
+     * @return
+     */
     @RequestMapping(value = "/onLogin", method = RequestMethod.POST)
     public MData miniLogin(@RequestBody LoginParam loginParam) {
         MData result = new MData();
         String code = loginParam.getCode();
 
         if (StringUtils.isEmpty(code)) {
-            log.error("code is {}", code);
+            log.error("code is：{}", code);
             result.error("code is null");
             return result;
         }
@@ -64,13 +69,18 @@ public class UserController {
             result.put("nickName", user.getNickName());
             result.put("avatarUrl", user.getAvatarUrl());
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error(e.toString(), e);
             result.error("program error");
         }
         return result;
     }
 
-
+    /**
+     * 用户信息校验
+     *
+     * @param userDetailForm
+     * @return
+     */
     @RequestMapping(value = "/mini/userInfoDetail", method = RequestMethod.POST)
     public MData checkUserInfoDetail(@RequestBody UserDetailDto userDetailForm) {
         MData result = new MData();
@@ -117,13 +127,13 @@ public class UserController {
                 result.error("decrypt data failed");
             }
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.error(ex.toString(), ex);
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             result.error("exception with :" + ex.getMessage());
         } finally {
             CacheUtil.cacheSessionMap.remove(appId + "_" + openId);
         }
         return result;
-
     }
 }
+

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
  * @description
  * @create 2020-04-22 15:11
  **/
-@Api(tags = "ES 数据处理", description = "")
+
 @Slf4j
 @RestController
 @RequestMapping("/sign")
