@@ -7,19 +7,20 @@ import lombok.Data;
 
 /**
  * @author MM
- * @description 班级签到记录
- * @create 2020-04-22 16:00
+ * @description
+ * @create 2020-04-26 14:45
  **/
 @Data
-@TableName("sign_class_record")
-public class SignClassRecord extends BaseModel {
-    private Integer id;
+@TableName("sign_class_user")
+public class SignClassUser extends BaseModel{
+
     private Integer classId;
-    private Integer taskId;
+
     private Integer uid;
+
+    private String studentName;
+
     private String userNo;
-    private String userName;
-    private Double latitude;
-    private Double longitude;
+
     private Integer score;
 }

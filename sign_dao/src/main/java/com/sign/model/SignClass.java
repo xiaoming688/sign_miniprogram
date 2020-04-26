@@ -13,15 +13,24 @@ import java.util.Date;
 @Data
 @TableName("sign_class")
 public class SignClass extends BaseModel{
-    private Integer signId;
-    private Integer createUserId;
+    private Integer uid;
+    private Integer classHour;
+
     private String introduce;
     private String telephone;
     private String className;
+
+    private String teacherName;
+    private String signName;
+
     private Date startTime;
     private Date endTime;
+
     private Double latitude;
     private Double longitude;
     private Integer limitArea;
+    private Integer limitNumber;
+    private Integer score;
+
     private String status;
 }

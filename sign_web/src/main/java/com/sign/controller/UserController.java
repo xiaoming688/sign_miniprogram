@@ -118,8 +118,8 @@ public class UserController {
                     user.setAvatarUrl(avatarUrl);
                     userService.updateUser(user);
                 }
-                result.put("id", user.getId());
-                result.put("faceImage", avatarUrl);
+                result.put("uid", user.getId());
+                result.put("avatarUrl", avatarUrl);
                 result.put("nickName", nickname);
                 result.put("openId", openId);
             } else {
@@ -135,5 +135,7 @@ public class UserController {
         }
         return result;
     }
+
+
 }
 
