@@ -21,4 +21,13 @@ import java.util.List;
 public interface SignClassTaskRecordDao extends BaseMapper<SignClassRecord> {
     @Select("SELECT * FROM sign_class_record WHERE class_id=#{classId}  and task_id=#{taskId}")
     List<SignClassRecord> queryRecordByTaskId(@Param("classId") Integer classId, @Param("taskId") Integer taskId);
+
+    @Select("SELECT * FROM sign_class_record WHERE class_id=#{classId}")
+    List<SignClassRecord> queryRecordByClassId(@Param("classId") Integer classId);
+
+    @Select("SELECT * FROM sign_class_record WHERE class_id=#{classId}  and uid=#{uid}")
+    List<SignClassRecord> queryUserRecordByClassId(@Param("classId") Integer classId, @Param("uid") Integer uid);
+
+    @Select("SELECT * FROM sign_class_record WHERE uid=#{uid}  and task_id=#{taskId}")
+    SignClassRecord queryUserRecordByTaskId(@Param("uid") Integer uid, @Param("taskId") Integer taskId);
 }

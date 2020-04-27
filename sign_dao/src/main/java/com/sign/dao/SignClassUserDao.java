@@ -29,6 +29,6 @@ public interface SignClassUserDao extends BaseMapper<SignClassUser> {
     SignClassUser queryClassUserById(@Param("uid") Integer uid, @Param("classId") Integer classId);
 
 
-    @Select("SELECT * FROM sign_class_user WHERE class_id=#{classId}")
+    @Select("SELECT * FROM sign_class_user WHERE class_id=#{classId} order by score desc")
     List<SignClassUser> queryClassUserByClassId(@Param("classId") Integer classId);
 }

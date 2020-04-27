@@ -11,4 +11,9 @@ public class CacheUtil {
     static {
         cacheSessionMap = new ConcurrentHashMap<>();
     }
+
+    public static final Map<String, MpWxAccessToken> accessTokenMap;
+    static {
+        accessTokenMap = new ConcurrentHashMap<>();
+    }
 }

@@ -6,14 +6,13 @@ import com.sign.dao.SignClassTaskRecordDao;
 import com.sign.dao.SignClassUserDao;
 import com.sign.model.*;
 import com.sign.pojo.*;
-import com.sign.util.Constants;
-import com.sign.util.DateUtil;
-import com.sign.util.MData;
+import com.sign.util.*;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -164,6 +163,7 @@ public class SignUserService {
         List<Map<String, Object>> userList = new ArrayList<>();
         for (SignClassUser signClassUser : classUserList) {
             Map<String, Object> user = new HashMap<>();
+            user.put("classUserId", signClassUser.getId());
             user.put("userNo", signClassUser.getUserNo());
             user.put("studentName", signClassUser.getStudentName());
             user.put("score", signClassUser.getScore().toString());
@@ -191,7 +191,12 @@ public class SignUserService {
         return result;
     }
 
+    public Double getLocationDouble(Object value) {
+        return StringUtil.isBlank(value) ? Double.valueOf(0) : Double.valueOf(String.valueOf(value));
+    }
+
     public MData userSign(UserSignDto signDetailDto) {
+
         MData result = new MData();
         Integer uid = signDetailDto.getUid();
         Integer taskId = signDetailDto.getTaskId();
@@ -199,8 +204,61 @@ public class SignUserService {
         if (signTask == null) {
             return result.error("taskId is error");
         }
+        SignClassRecord records = signClassTaskRecordDao.queryUserRecordByTaskId(uid, taskId);
+        if (records != null) {
+            return result.error("该用户已签到");
+        }
+        //判断距离是否能签到
+        SignClass signClass = signClassDao.selectById(signTask.getClassId());
+        Double latitude = getLocationDouble(signDetailDto.getLatitude());
+        Double longitude = getLocationDouble(signDetailDto.getLongitude());
+        Double distance = MapDistance.getDistance(signClass.getLatitude(), signClass.getLongitude(),
+                latitude, longitude);
+        BigDecimal distanceKm = BigDecimal.valueOf(distance);
+        //km
+        BigDecimal limit = BigDecimal.valueOf(signClass.getLimitArea()).multiply(BigDecimal.valueOf(1000));
+        if (distanceKm.compareTo(limit) > 0) {
+            log.info("distance {} limit {}", distanceKm, limit);
+            return result.error("不在签到距离");
+        }
+        SignClassRecord addRecord = new SignClassRecord();
+        addRecord.setLatitude(latitude);
+        addRecord.setLongitude(longitude);
+        addRecord.setClassId(signClass.getId());
+        addRecord.setTaskId(taskId);
+        addRecord.setUid(uid);
+        addRecord.setScore(signClass.getScore());
+
+        signClassTaskRecordDao.insert(addRecord);
+        return result;
+    }
+
+    /**
+     * 加分记录
+     *
+     * @param signDetailDto
+     * @return
+     */
+    public MData scoreDetail(SignDetailDto signDetailDto) {
+        MData result = new MData();
+        Integer uid = signDetailDto.getUid();
+        Integer classId = signDetailDto.getClassId();
+
+        List<SignClassRecord> recordList = signClassTaskRecordDao.queryUserRecordByClassId(classId, uid);
 
 
+        return result;
+    }
+
+    /**
+     * 积分排行
+     * @param signDetailDto
+     * @return
+     */
+    public MData scoreRank(SignDetailDto signDetailDto) {
+        MData result = new MData();
+        List<SignClassUser> classUserList = signClassUserDao.queryClassUserByClassId(signDetailDto.getClassId());
+        result.setData(classUserList);
         return result;
     }
 }

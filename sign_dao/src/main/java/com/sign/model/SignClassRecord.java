@@ -17,8 +17,6 @@ public class SignClassRecord extends BaseModel {
     private Integer classId;
     private Integer taskId;
     private Integer uid;
-    private String userNo;
-    private String userName;
     private Double latitude;
     private Double longitude;
     private Integer score;
