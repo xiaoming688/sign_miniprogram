@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 /**
  * @author MM
  * @description
@@ -29,21 +31,24 @@ public class SignStudentController {
 
     @ApiOperation(value = "加入班级", notes = "")
     @RequestMapping(value = "/joinClass", method = RequestMethod.POST)
-    public MData joinClass(@RequestBody @Validated JoinUserDto signUserDto){
+    public MData joinClass(@RequestBody @Validated JoinUserDto signUserDto) {
         return signUserService.joinClass(signUserDto);
     }
 
 
     @ApiOperation(value = "学生点击签到", notes = "")
     @RequestMapping(value = "/userSign", method = RequestMethod.POST)
-    public MData userSign(@RequestBody @Validated UserSignDto userSignDto){
+    public MData userSign(@RequestBody @Validated UserSignDto userSignDto) {
         return signUserService.userSign(userSignDto);
     }
 
     @ApiOperation(value = "加分记录", notes = "")
     @RequestMapping(value = "/scoreDetail", method = RequestMethod.POST)
-    public MData scoreDetail(@RequestBody @Validated SignDetailDto signDetailDto){
-        return signUserService.scoreDetail(signDetailDto);
+    public MData scoreDetail(@RequestBody @Validated SignDetailDto signDetailDto) {
+        Map<String, Object> data = signUserService.scoreDetail(signDetailDto);
+        MData result = new MData();
+        result.setData(data);
+        return result;
     }
 
 }

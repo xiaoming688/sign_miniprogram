@@ -1,7 +1,5 @@
 package com.sign.model;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -13,7 +11,6 @@ import lombok.Data;
 @Data
 @TableName("sign_class_record")
 public class SignClassRecord extends BaseModel {
-    private Integer id;
     private Integer classId;
     private Integer taskId;
     private Integer uid;

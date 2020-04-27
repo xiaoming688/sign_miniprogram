@@ -1,6 +1,7 @@
 package com.sign.controller;
 
 import com.sign.pojo.SignClassUserDto;
+import com.sign.pojo.SignDetailDto;
 import com.sign.pojo.SignTaskDto;
 import com.sign.service.SignTeacherService;
 import com.sign.util.MData;
@@ -35,13 +36,19 @@ public class SignTeacherController {
         return signTeacherService.createSignTask(signTaskDto);
     }
 
+    @ApiOperation(value = "成员管理")
+    @RequestMapping(value = "/manageStudent", method = RequestMethod.POST)
+    public MData manageStudent(@RequestBody @Validated SignDetailDto signDetailDto){
+        return signTeacherService.manageStudent(signDetailDto);
+    }
+
     @ApiIgnore(value = "删除学生")
     @RequestMapping(value = "/deleteStudent", method = RequestMethod.POST)
     public MData deleteStudent(@RequestBody @Validated SignClassUserDto deleteStudentDto){
         return signTeacherService.deleteStudent(deleteStudentDto);
     }
 
-    @ApiIgnore(value = "学生签到详情")
+    @ApiOperation(value = "某学生签到详情")
     @RequestMapping(value = "/userSignDetail", method = RequestMethod.POST)
     public MData userSignDetail(@RequestBody @Validated SignClassUserDto deleteStudentDto){
         return signTeacherService.userSignDetail(deleteStudentDto);

@@ -11,6 +11,7 @@ import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -151,10 +152,10 @@ public class SignUserService {
                 break;
             }
         }
-        List<Integer> signUsers = new ArrayList<>();
+        Map<Integer, SignClassRecord> signUsers = new HashMap<>();
         if (signClassTask != null) {
             List<SignClassRecord> classTaskList = signClassTaskRecordDao.queryRecordByTaskId(classId, signClassTask.getId());
-            signUsers = classTaskList.stream().map(SignClassRecord::getUid).collect(Collectors.toList());
+            signUsers = classTaskList.stream().collect(Collectors.toMap(SignClassRecord::getUid, t -> t));
         }
 
         List<SignClassUser> classUserList = signClassUserDao.queryClassUserByClassId(classId);
@@ -167,10 +168,16 @@ public class SignUserService {
             user.put("userNo", signClassUser.getUserNo());
             user.put("studentName", signClassUser.getStudentName());
             user.put("score", signClassUser.getScore().toString());
-            user.put("isSigned", signUsers.contains(signClassUser.getUid()));
+
+            user.put("isSign", false);
+            if (signUsers.containsKey(signClassUser.getUid())) {
+                user.put("isSign", true);
+                user.put("latitude", signUsers.get(signClassUser.getUid()).getLatitude());
+                user.put("longitude", signUsers.get(signClassUser.getUid()).getLongitude());
+            }
 
             if (signClassUser.getUid().equals(uid)) {
-                currentUser = signUsers.contains(signClassUser.getUid());
+                currentUser = signUsers.containsKey(signClassUser.getUid());
             }
             userList.add(user);
         }
@@ -185,7 +192,7 @@ public class SignUserService {
         data.put("signCreate", signClass.getSignName());
         data.put("signIntroduce", signClass.getIntroduce());
 
-        data.put("alertScore", true);
+//        data.put("alertScore", true);
 
         result.setData(data);
         return result;
@@ -195,6 +202,7 @@ public class SignUserService {
         return StringUtil.isBlank(value) ? Double.valueOf(0) : Double.valueOf(String.valueOf(value));
     }
 
+    @Transactional
     public MData userSign(UserSignDto signDetailDto) {
 
         MData result = new MData();
@@ -208,6 +216,13 @@ public class SignUserService {
         if (records != null) {
             return result.error("该用户已签到");
         }
+        SignClassUser signClassUser = signClassUserDao.queryClassUserById(uid, signTask.getClassId());
+        if (signClassUser == null) {
+            log.info("userSign:{} not join class:{}", uid, signTask.getClassId());
+            return result.error("该用户未加入该班级");
+        }
+
+
         //判断距离是否能签到
         SignClass signClass = signClassDao.selectById(signTask.getClassId());
         Double latitude = getLocationDouble(signDetailDto.getLatitude());
@@ -230,6 +245,11 @@ public class SignUserService {
         addRecord.setScore(signClass.getScore());
 
         signClassTaskRecordDao.insert(addRecord);
+
+
+        signClassUser.setScore(signClassUser.getScore() + signClass.getScore());
+        signClassUserDao.updateById(signClassUser);
+
         return result;
     }
 
@@ -239,19 +259,42 @@ public class SignUserService {
      * @param signDetailDto
      * @return
      */
-    public MData scoreDetail(SignDetailDto signDetailDto) {
-        MData result = new MData();
+    public Map<String, Object> scoreDetail(SignDetailDto signDetailDto) {
         Integer uid = signDetailDto.getUid();
         Integer classId = signDetailDto.getClassId();
+        SignClassUser classUser = signClassUserDao.queryClassUserById(uid, classId);
 
         List<SignClassRecord> recordList = signClassTaskRecordDao.queryUserRecordByClassId(classId, uid);
 
+        List<SignClassTask> taskList = signClassTaskDao.queryTaskByClassId(classId);
+        Map<Integer, String> taskType = new HashMap<>();
+        for (SignClassTask signClassTask : taskList) {
+            taskType.put(signClassTask.getId(),
+                    signClassTask.getTaskType().equals(Constants.TASK_TYPE_SIGN) ? "签到" : "点名");
+        }
 
-        return result;
+        List<Map<String, Object>> recordDataList = new ArrayList<>();
+        for (SignClassRecord signClassRecord : recordList) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("recordTime", cn.hutool.core.date.DateUtil.formatDateTime(signClassRecord.getCreateTime()));
+            data.put("score", signClassRecord.getScore());
+            data.put("scoreType", taskType.get(signClassRecord.getTaskId()));
+
+            recordDataList.add(data);
+        }
+        Map<String, Object> data = new HashMap<>();
+        //老师调用 为空
+        if (classUser != null) {
+            data.put("studentName", classUser.getStudentName());
+        }
+        data.put("recordList", recordDataList);
+
+        return data;
     }
 
     /**
      * 积分排行
+     *
      * @param signDetailDto
      * @return
      */
