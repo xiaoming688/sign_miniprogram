@@ -24,6 +24,10 @@ public interface SignClassUserDao extends BaseMapper<SignClassUser> {
             "left join sign_class c on c.id = l.class_id where l.uid = #{userId} and c.status='active'")
     List<SignIndexVo> querySignIndexVo(@Param("userId") Integer userId);
 
+    @Select("select c.id as classId, c.class_name as className, c.teacher_name as teacherName, c.sign_name as signName from sign_class c " +
+            "where c.uid = #{userId} and c.status='active'")
+    List<SignIndexVo> querySignClassIndexVo(@Param("userId") Integer userId);
+
 
     @Select("SELECT * FROM sign_class_user WHERE uid = #{uid} and class_id=#{classId}")
     SignClassUser queryClassUserById(@Param("uid") Integer uid, @Param("classId") Integer classId);

@@ -15,4 +15,6 @@ public class SignIndexVo {
     private String signName;
     private String teacherName;
 
+    private Boolean isCreated;
+
 }

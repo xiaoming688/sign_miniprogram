@@ -45,7 +45,18 @@ public class SignUserService {
     public MData getIndex(SignUserDto signUserDto) {
         MData result = new MData();
         Integer userId = signUserDto.getUid();
+        //加入的班级
         List<SignIndexVo> indexVoList = signClassUserDao.querySignIndexVo(userId);
+        for (SignIndexVo signIndexVo : indexVoList) {
+            signIndexVo.setIsCreated(false);
+        }
+        //创建的班级
+        List<SignIndexVo> createVoList = signClassUserDao.querySignClassIndexVo(userId);
+        for (SignIndexVo signIndexVo : createVoList) {
+            signIndexVo.setIsCreated(true);
+        }
+        indexVoList.addAll(createVoList);
+
         result.setData(indexVoList);
         return result;
     }
@@ -132,8 +143,9 @@ public class SignUserService {
         }
         Map<String, Object> data = new HashMap<>();
         SignClassUser classUser = signClassUserDao.queryClassUserById(uid, classId);
-        if (classUser == null) {
+        if (!signClass.getUid().equals(uid) && classUser == null) {
             data.put("isJoin", false);
+            data.put("className", signClass.getClassName());
             result.setData(data);
             return result;
         }
@@ -164,14 +176,14 @@ public class SignUserService {
         List<Map<String, Object>> userList = new ArrayList<>();
         for (SignClassUser signClassUser : classUserList) {
             Map<String, Object> user = new HashMap<>();
-            user.put("classUserId", signClassUser.getId());
-            user.put("userNo", signClassUser.getUserNo());
-            user.put("studentName", signClassUser.getStudentName());
-            user.put("score", signClassUser.getScore().toString());
+            user.put("sId", signClassUser.getId());
+            user.put("sNo", signClassUser.getUserNo());
+            user.put("name", signClassUser.getStudentName());
+            user.put("credit", signClassUser.getScore().toString());
 
-            user.put("isSign", false);
+            user.put("signed", false);
             if (signUsers.containsKey(signClassUser.getUid())) {
-                user.put("isSign", true);
+                user.put("signed", true);
                 user.put("latitude", signUsers.get(signClassUser.getUid()).getLatitude());
                 user.put("longitude", signUsers.get(signClassUser.getUid()).getLongitude());
             }
@@ -186,10 +198,13 @@ public class SignUserService {
         data.put("canSignTaskId", signClassTask == null ? 0 : signClassTask.getId());
         data.put("isSign", currentUser);
 
-        data.put("isTeacher", uid.equals(signClass.getUid()));
+        data.put("isCreated", uid.equals(signClass.getUid()));
         data.put("isJoin", true);
 
+        data.put("className", signClass.getClassName());
+        data.put("signHour", signClass.getClassHour());
         data.put("signCreate", signClass.getSignName());
+        data.put("teacherName", signClass.getTeacherName());
         data.put("signIntroduce", signClass.getIntroduce());
 
 //        data.put("alertScore", true);
