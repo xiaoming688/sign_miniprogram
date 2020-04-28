@@ -29,9 +29,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class SignCommonController {
 
     @Autowired
-    private SignTeacherService signTeacherService;
-
-    @Autowired
     private SignUserService signUserService;
 
     @ApiOperation(value = "签到首页", notes = "")

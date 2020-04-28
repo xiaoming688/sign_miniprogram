@@ -3,6 +3,7 @@ package com.sign.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.sign.model.SignClassUser;
 import com.sign.model.User;
+import com.sign.pojo.SignClassUserVo;
 import com.sign.pojo.SignIndexVo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -35,4 +36,7 @@ public interface SignClassUserDao extends BaseMapper<SignClassUser> {
 
     @Select("SELECT * FROM sign_class_user WHERE class_id=#{classId} order by score desc")
     List<SignClassUser> queryClassUserByClassId(@Param("classId") Integer classId);
+
+    @Select("SELECT u.id as uid, u.open_id as openId FROM sign_class_user as c left join user u on u.id = c.uid WHERE c.class_id=#{classId}")
+    List<SignClassUserVo> queryClassUserBasicByClassId(@Param("classId") Integer classId);
 }

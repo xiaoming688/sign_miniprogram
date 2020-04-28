@@ -1,5 +1,6 @@
 package com.sign.controller;
 
+import com.sign.pojo.AddSignScoreDto;
 import com.sign.pojo.SignClassUserDto;
 import com.sign.pojo.SignDetailDto;
 import com.sign.pojo.SignTaskDto;
@@ -34,6 +35,12 @@ public class SignTeacherController {
     @RequestMapping(value = "/createSignTask", method = RequestMethod.POST)
     public MData createSignTask(@RequestBody @Validated SignTaskDto signTaskDto){
         return signTeacherService.createSignTask(signTaskDto);
+    }
+
+    @ApiOperation(value = "布置作业--添加积分", notes = "")
+    @RequestMapping(value = "/addSingScore", method = RequestMethod.POST)
+    public MData addSingScore(@RequestBody @Validated AddSignScoreDto addSignScoreDto){
+        return signTeacherService.addSingScore(addSignScoreDto);
     }
 
     @ApiOperation(value = "成员管理")

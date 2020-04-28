@@ -30,7 +30,7 @@ public class MpCompentent {
         }
     }
 
-    public MpWxAccessToken getAccessToken(String appid, String secret) {
+    public static MpWxAccessToken getAccessToken(String appid, String secret) {
         //放缓存
         MpWxAccessToken accessToken = CacheUtil.accessTokenMap.get(appid);
         //判断access_token  是否存在
@@ -77,7 +77,7 @@ public class MpCompentent {
         return accessToken;
     }
 
-    public static MData sendMessageToOpenId(String accessToken, String openId) {
+    public static MData sendMessageToOpenId(String accessToken, String openId, String timeStr, String className, String teacher, String signName) {
         MData result = new MData();
         try {
             String urlStr = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=" + accessToken;
@@ -87,26 +87,27 @@ public class MpCompentent {
             param.put("touser", openId);
             param.put("template_id", "pkKMKQzWL2w86yNN_JOSSRHCVr6T7rJn2FCebHB_SVU");
 
-//            param.put("page", "pkKMKQzWL2w86yNN_JOSSRHCVr6T7rJn2FCebHB_SVU");
+//            param.put("page", "");
             //跳转小程序类型：developer为开发版；trial为体验版；formal为正式版；默认为正式版
             param.put("miniprogram_state", "trial");
 
             Map<String, Object> action_info = new HashMap();
 
             Map<String, Object> timeValue = new HashMap();
-            timeValue.put("value", "2020-03-23 10:00~12:00");
+//            timeValue.put("value", "2020-03-23 10:00~12:00");
+            timeValue.put("value", timeStr);
             action_info.put("time1", timeValue);
 
             Map<String, Object> thing2Value = new HashMap();
-            thing2Value.put("value", "英语口语课程");
+            thing2Value.put("value", className);
             action_info.put("thing2", thing2Value);
 
             Map<String, Object> thing5Value = new HashMap();
-            thing5Value.put("value", "刘老师");
+            thing5Value.put("value", teacher);
             action_info.put("thing5", thing5Value);
 
             Map<String, Object> thing4Value = new HashMap();
-            thing4Value.put("value", "英语口语速成班");
+            thing4Value.put("value", signName);
             action_info.put("thing4", thing4Value);
 
             param.put("data", action_info);

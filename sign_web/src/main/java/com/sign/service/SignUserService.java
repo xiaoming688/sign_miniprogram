@@ -196,6 +196,9 @@ public class SignUserService {
 
         data.put("userList", userList);
         data.put("canSignTaskId", signClassTask == null ? 0 : signClassTask.getId());
+        data.put("signStartTime", signClassTask == null ? "" : cn.hutool.core.date.DateUtil.format(signClassTask.getStartTime(), "HH:mm"));
+        data.put("signEndTime", signClassTask == null ? "" : cn.hutool.core.date.DateUtil.format(signClassTask.getEndTime(), "HH:mm"));
+
         data.put("isSign", currentUser);
 
         data.put("isCreated", uid.equals(signClass.getUid()));

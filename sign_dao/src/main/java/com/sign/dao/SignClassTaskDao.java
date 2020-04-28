@@ -18,6 +18,6 @@ import java.util.List;
 @Mapper
 @Repository
 public interface SignClassTaskDao extends BaseMapper<SignClassTask> {
-    @Select("SELECT * FROM sign_class_task WHERE class_id=#{classId}")
+    @Select("SELECT * FROM sign_class_task WHERE class_id=#{classId} and task_type='sign'")
     List<SignClassTask> queryTaskByClassId(@Param("classId") Integer classId);
 }

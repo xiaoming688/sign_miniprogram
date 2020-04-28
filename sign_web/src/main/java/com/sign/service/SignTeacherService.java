@@ -1,17 +1,21 @@
 package com.sign.service;
 
 import com.sign.dao.SignClassDao;
+import com.sign.dao.SignClassTaskDao;
+import com.sign.dao.SignClassTaskRecordDao;
 import com.sign.dao.SignClassUserDao;
 import com.sign.model.SignClass;
+import com.sign.model.SignClassRecord;
+import com.sign.model.SignClassTask;
 import com.sign.model.SignClassUser;
-import com.sign.pojo.SignClassUserDto;
-import com.sign.pojo.SignDetailDto;
-import com.sign.pojo.SignTaskDto;
-import com.sign.util.MData;
+import com.sign.pojo.*;
+import com.sign.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -31,13 +35,61 @@ public class SignTeacherService {
     private SignClassUserDao signClassUserDao;
 
     @Autowired
+    private SignClassTaskDao signClassTaskDao;
+
+    @Autowired
+    private SignClassTaskRecordDao signClassTaskRecordDao;
+
+    @Autowired
     private SignClassDao signClassDao;
 
     public MData createSignTask(SignTaskDto signTaskDto) {
+        MData result = new MData();
         //需要先判断是否有未签到
+        Integer classId = signTaskDto.getClassId();
+        //是否有未签到任务。。。
+        List<SignClassTask> signTasks = signClassTaskDao.queryTaskByClassId(classId);
+        Date now = new Date();
+        SignClassTask signClassTask = null;
+        for (SignClassTask signTask : signTasks) {
+            //只需要签到的task
+            if (!signTask.getTaskType().equals(Constants.TASK_TYPE_SIGN)) {
+                continue;
+            }
+            //时间在期间
+            if (DateUtil.belongCalendar(now, signTask.getStartTime(), signTask.getEndTime())) {
+                signClassTask = signTask;
+                break;
+            }
+        }
+        if (signClassTask != null) {
+            return result.error("目前存在未完成签到，请签到结束后再试~");
+        }
+        Date startTime = signTaskDto.getStartTime();
+        Date endTime = signTaskDto.getEndTime();
 
+        if (startTime.after(endTime)) {
+            return result.error("起始日期不正确");
+        }
+        SignClassTask task = new SignClassTask();
+        task.setClassId(classId);
+        task.setStartTime(startTime);
+        task.setEndTime(endTime);
+        task.setTaskType(Constants.TASK_TYPE_SIGN);
+        signClassTaskDao.insert(task);
+        //todo 发通知
+        List<SignClassUserVo> classUserList = signClassUserDao.queryClassUserBasicByClassId(classId);
+        SignClass signClass = signClassDao.selectById(classId);
+        String timeStr = cn.hutool.core.date.DateUtil.format(startTime, "yyyy-MM-dd HH:mm")
+                + "~" + cn.hutool.core.date.DateUtil.format(endTime, "HH:mm");
 
-        return new MData();
+        MpWxAccessToken accessToken = MpCompentent.getAccessToken(Constants.APPID, Constants.APP_SECRET);
+        for (SignClassUserVo classUser : classUserList) {
+            MpCompentent.sendMessageToOpenId(accessToken.getAccessToken(), classUser.getOpenId(),
+                    timeStr, signClass.getClassName(), signClass.getTeacherName(), signClass.getSignName());
+        }
+
+        return result;
     }
 
     public MData deleteStudent(SignClassUserDto deleteStudentDto) {
@@ -72,5 +124,42 @@ public class SignTeacherService {
 
         result.setData(classUserList);
         return result;
+    }
+
+    @Transactional
+    public MData addSingScore(AddSignScoreDto addSignScoreDto) {
+        MData result = new MData();
+        Integer classUserId = addSignScoreDto.getClassUserId();
+        Integer score = addSignScoreDto.getScore();
+        SignClassUser classUser = signClassUserDao.selectById(classUserId);
+        if (classUser == null) {
+            log.error("classUserId is error {}", classUserId);
+            return result.error("classUserId is error");
+        }
+        if (score == null || score < 0) {
+            log.error("score is error {}", classUserId);
+            return result.error("score is error");
+        }
+
+        classUser.setScore(classUser.getScore() + score);
+        signClassUserDao.updateById(classUser);
+
+        SignClass signClass = signClassDao.selectById(classUser.getClassId());
+
+        SignClassTask task = new SignClassTask();
+        task.setTaskType(Constants.TASK_TYPE_CHOOSE);
+        task.setClassId(classUser.getClassId());
+        signClassTaskDao.insert(task);
+
+        SignClassRecord record = new SignClassRecord();
+        record.setClassId(classUser.getClassId());
+        record.setTaskId(task.getId());
+        record.setLatitude(signClass.getLatitude());
+        record.setLongitude(signClass.getLongitude());
+        record.setScore(score);
+        record.setUid(classUser.getUid());
+        signClassTaskRecordDao.insert(record);
+        return result;
+
     }
 }
