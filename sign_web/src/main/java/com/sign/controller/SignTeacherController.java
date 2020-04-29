@@ -43,8 +43,8 @@ public class SignTeacherController {
         return signTeacherService.addSingScore(addSignScoreDto);
     }
 
-    @ApiOperation(value = "布置作业--点名学生初始化")
-    @RequestMapping(value = "/studentList", method = RequestMethod.POST)
+    @ApiOperation(value = "布置作业--初始化")
+    @RequestMapping(value = "/createSignTaskInit", method = RequestMethod.POST)
     public MData studentList(@RequestBody @Validated SignDetailDto signDetailDto){
         return signTeacherService.studentList(signDetailDto);
     }

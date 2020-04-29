@@ -167,7 +167,10 @@ public class SignTeacherService {
         Map<Integer, SignClassRecord> signUsers = new HashMap<>();
         Integer classId = signDetailDto.getClassId();
         Integer taskId = signDetailDto.getTaskId();
-        SignClassTask signClassTask = signClassTaskDao.selectById(taskId);
+        SignClassTask signClassTask = null;
+        if (taskId != null && taskId.equals(0)) {
+            signClassTask = signClassTaskDao.selectById(taskId);
+        }
         if (signClassTask != null) {
             List<SignClassRecord> classTaskList = signClassTaskRecordDao.queryRecordByTaskId(classId, taskId);
             signUsers = classTaskList.stream().collect(Collectors.toMap(SignClassRecord::getUid, t -> t));
@@ -175,6 +178,7 @@ public class SignTeacherService {
         List<SignClassUser> classUserList = signClassUserDao.queryClassUserByClassId(classId);
 
         List<Map<String, Object>> userList = new ArrayList<>();
+        Map<String, Object> data = new HashMap<>();
         for (SignClassUser signClassUser : classUserList) {
             Map<String, Object> user = new HashMap<>();
             user.put("classUserId", signClassUser.getId());
@@ -184,7 +188,12 @@ public class SignTeacherService {
                 userList.add(user);
             }
         }
-        result.setData(userList);
+        data.put("userList", userList);
+        data.put("canSignTaskId", signClassTask == null ? 0 : signClassTask.getId());
+        data.put("signStartTime", signClassTask == null ? "" : cn.hutool.core.date.DateUtil.format(signClassTask.getStartTime(), "HH:mm"));
+        data.put("signEndTime", signClassTask == null ? "" : cn.hutool.core.date.DateUtil.format(signClassTask.getEndTime(), "HH:mm"));
+
+        result.setData(data);
         return result;
     }
 }

@@ -2,6 +2,7 @@ package com.sign.pojo;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
 /**
@@ -16,6 +17,5 @@ public class SignDetailDto {
     @Positive(message = "classId不能为空")
     private Integer classId;
 
-    @Positive(message = "taskId不能为空")
     private Integer taskId;
 }
