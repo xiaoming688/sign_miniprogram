@@ -11,6 +11,7 @@ import com.sign.model.SignClassUser;
 import com.sign.pojo.*;
 import com.sign.util.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.client.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,8 +65,9 @@ public class SignTeacherService {
         if (signClassTask != null) {
             return result.error("目前存在未完成签到，请签到结束后再试~");
         }
-        Date startTime = signTaskDto.getStartTime();
-        Date endTime = signTaskDto.getEndTime();
+        log.info("signTaskDto:{}", signTaskDto);
+        Date startTime = cn.hutool.core.date.DateUtil.parse(signTaskDto.getStartTime());
+        Date endTime = cn.hutool.core.date.DateUtil.parse(signTaskDto.getEndTime());
 
         if (startTime.after(endTime)) {
             return result.error("起始日期不正确");
@@ -87,7 +89,7 @@ public class SignTeacherService {
             MpCompentent.sendMessageToOpenId(accessToken.getAccessToken(), classUser.getOpenId(),
                     timeStr, signClass.getClassName(), signClass.getTeacherName(), signClass.getSignName());
         }
-
+        result.put("taskId", task.getId());
         return result;
     }
 
@@ -166,13 +168,23 @@ public class SignTeacherService {
         MData result = new MData();
         Map<Integer, SignClassRecord> signUsers = new HashMap<>();
         Integer classId = signDetailDto.getClassId();
-        Integer taskId = signDetailDto.getTaskId();
+        //是否有未签到任务。。。
+        List<SignClassTask> signTasks = signClassTaskDao.queryTaskByClassId(classId);
+        Date now = new Date();
         SignClassTask signClassTask = null;
-        if (taskId != null && taskId.equals(0)) {
-            signClassTask = signClassTaskDao.selectById(taskId);
+        for (SignClassTask signTask : signTasks) {
+            //只需要签到的task
+            if (!signTask.getTaskType().equals(Constants.TASK_TYPE_SIGN)) {
+                continue;
+            }
+            //时间在期间
+            if (DateUtil.belongCalendar(now, signTask.getStartTime(), signTask.getEndTime())) {
+                signClassTask = signTask;
+                break;
+            }
         }
         if (signClassTask != null) {
-            List<SignClassRecord> classTaskList = signClassTaskRecordDao.queryRecordByTaskId(classId, taskId);
+            List<SignClassRecord> classTaskList = signClassTaskRecordDao.queryRecordByTaskId(classId, signClassTask.getId());
             signUsers = classTaskList.stream().collect(Collectors.toMap(SignClassRecord::getUid, t -> t));
         }
         List<SignClassUser> classUserList = signClassUserDao.queryClassUserByClassId(classId);
@@ -190,6 +202,7 @@ public class SignTeacherService {
         }
         data.put("userList", userList);
         data.put("canSignTaskId", signClassTask == null ? 0 : signClassTask.getId());
+        data.put("signDate", signClassTask == null ? "" : cn.hutool.core.date.DateUtil.format(signClassTask.getStartTime(), "yyyy-MM-dd"));
         data.put("signStartTime", signClassTask == null ? "" : cn.hutool.core.date.DateUtil.format(signClassTask.getStartTime(), "HH:mm"));
         data.put("signEndTime", signClassTask == null ? "" : cn.hutool.core.date.DateUtil.format(signClassTask.getEndTime(), "HH:mm"));
 

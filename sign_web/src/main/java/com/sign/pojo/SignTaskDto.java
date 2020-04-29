@@ -15,6 +15,6 @@ public class SignTaskDto {
     private Integer classId;
     private Integer uid;
 
-    private Date startTime;
-    private Date endTime;
+    private String startTime;
+    private String endTime;
 }

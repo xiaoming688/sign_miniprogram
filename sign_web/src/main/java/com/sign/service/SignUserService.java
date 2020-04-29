@@ -319,7 +319,12 @@ public class SignUserService {
     public MData scoreRank(SignDetailDto signDetailDto) {
         MData result = new MData();
         List<SignClassUser> classUserList = signClassUserDao.queryClassUserByClassId(signDetailDto.getClassId());
-        result.setData(classUserList);
+        SignClass signClass = signClassDao.selectById(signDetailDto.getClassId());
+        Map<String,Object>data = new HashMap<>();
+        data.put("className", signClass.getClassName());
+        data.put("scoreList", classUserList);
+
+        result.setData(data);
         return result;
     }
 }
