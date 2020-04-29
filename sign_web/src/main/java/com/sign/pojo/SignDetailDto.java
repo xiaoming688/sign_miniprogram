@@ -15,4 +15,7 @@ public class SignDetailDto {
     private Integer uid;
     @Positive(message = "classId不能为空")
     private Integer classId;
+
+    @Positive(message = "taskId不能为空")
+    private Integer taskId;
 }

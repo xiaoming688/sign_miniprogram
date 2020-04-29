@@ -15,9 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author MM
@@ -161,5 +160,31 @@ public class SignTeacherService {
         signClassTaskRecordDao.insert(record);
         return result;
 
+    }
+
+    public MData studentList(SignDetailDto signDetailDto) {
+        MData result = new MData();
+        Map<Integer, SignClassRecord> signUsers = new HashMap<>();
+        Integer classId = signDetailDto.getClassId();
+        Integer taskId = signDetailDto.getTaskId();
+        SignClassTask signClassTask = signClassTaskDao.selectById(taskId);
+        if (signClassTask != null) {
+            List<SignClassRecord> classTaskList = signClassTaskRecordDao.queryRecordByTaskId(classId, taskId);
+            signUsers = classTaskList.stream().collect(Collectors.toMap(SignClassRecord::getUid, t -> t));
+        }
+        List<SignClassUser> classUserList = signClassUserDao.queryClassUserByClassId(classId);
+
+        List<Map<String, Object>> userList = new ArrayList<>();
+        for (SignClassUser signClassUser : classUserList) {
+            Map<String, Object> user = new HashMap<>();
+            user.put("classUserId", signClassUser.getId());
+            user.put("name", signClassUser.getStudentName());
+
+            if (signUsers.containsKey(signClassUser.getUid())) {
+                userList.add(user);
+            }
+        }
+        result.setData(userList);
+        return result;
     }
 }
