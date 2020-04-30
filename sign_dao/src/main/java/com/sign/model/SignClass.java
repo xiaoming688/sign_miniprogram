@@ -29,6 +29,8 @@ public class SignClass extends BaseModel{
 
     private Double latitude;
     private Double longitude;
+
+    private String signLocation;
     private Integer limitArea;
     private Integer limitNumber;
     private Integer score;

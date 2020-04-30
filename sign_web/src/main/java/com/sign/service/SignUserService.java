@@ -92,6 +92,7 @@ public class SignUserService {
         signClass.setStartTime(signUserDto.getStartTime());
         signClass.setEndTime(signUserDto.getEndTime());
         signClass.setScore(signUserDto.getScore());
+        signClass.setSignLocation(signUserDto.getLocation());
 
         signClass.setStatus(Constants.CLASS_ACTIVE);
 
@@ -221,8 +222,8 @@ public class SignUserService {
         data.put("signCreate", signClass.getSignName());
         data.put("teacherName", signClass.getTeacherName());
         data.put("signIntroduce", signClass.getIntroduce());
-
-//        data.put("alertScore", true);
+        data.put("limitArea", signClass.getLimitArea());
+        data.put("location", signClass.getSignLocation());
 
         result.setData(data);
         return result;

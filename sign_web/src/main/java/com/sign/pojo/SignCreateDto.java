@@ -27,6 +27,7 @@ public class SignCreateDto {
 
     private String teacherName;
 
+    private String location;
     private Date startTime;
     private Date endTime;
     private Integer limitNumber;

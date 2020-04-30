@@ -41,7 +41,7 @@ public class SignSyncTask {
      * 每天固定时间
      */
 //    @Scheduled(cron = "0 1 0 * * ?")
-    @Scheduled(cron = "0/4 * * * * ? ")
+//    @Scheduled(cron = "0/4 * * * * ? ")
     public void checkDesignerAccount() {
         log.info("检查课时数 过半 通知 current date: {}", DateUtil.now());
 
