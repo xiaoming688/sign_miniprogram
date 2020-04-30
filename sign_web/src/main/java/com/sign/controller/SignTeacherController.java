@@ -55,7 +55,7 @@ public class SignTeacherController {
         return signTeacherService.manageStudent(signDetailDto);
     }
 
-    @ApiIgnore(value = "删除学生")
+    @ApiOperation(value = "删除学生")
     @RequestMapping(value = "/deleteStudent", method = RequestMethod.POST)
     public MData deleteStudent(@RequestBody @Validated SignClassUserDto deleteStudentDto){
         return signTeacherService.deleteStudent(deleteStudentDto);

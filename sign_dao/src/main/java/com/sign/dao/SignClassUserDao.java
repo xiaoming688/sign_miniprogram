@@ -21,11 +21,11 @@ import java.util.List;
 @Repository
 public interface SignClassUserDao extends BaseMapper<SignClassUser> {
 
-    @Select("select c.id as classId, c.class_name as className, c.teacher_name as teacherName, c.sign_name as signName from sign_class_user l " +
+    @Select("select c.id as classId, c.class_name as className, c.teacher_name as teacherName, c.sign_name as signName, c.create_time as createTime from sign_class_user l " +
             "left join sign_class c on c.id = l.class_id where l.uid = #{userId} and c.status='active'")
     List<SignIndexVo> querySignIndexVo(@Param("userId") Integer userId);
 
-    @Select("select c.id as classId, c.class_name as className, c.teacher_name as teacherName, c.sign_name as signName from sign_class c " +
+    @Select("select c.id as classId, c.class_name as className, c.teacher_name as teacherName, c.sign_name as signName, c.create_time as createTime from sign_class c " +
             "where c.uid = #{userId} and c.status='active'")
     List<SignIndexVo> querySignClassIndexVo(@Param("userId") Integer userId);
 

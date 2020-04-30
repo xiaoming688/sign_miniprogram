@@ -1,5 +1,6 @@
 package com.sign.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.sign.dao.SignClassDao;
 import com.sign.dao.SignClassTaskDao;
 import com.sign.dao.SignClassTaskRecordDao;
@@ -43,6 +44,7 @@ public class SignTeacherService {
     @Autowired
     private SignClassDao signClassDao;
 
+    @Transactional
     public MData createSignTask(SignTaskDto signTaskDto) {
         MData result = new MData();
         //需要先判断是否有未签到
@@ -78,9 +80,18 @@ public class SignTeacherService {
         task.setEndTime(endTime);
         task.setTaskType(Constants.TASK_TYPE_SIGN);
         signClassTaskDao.insert(task);
+
+
         //todo 发通知
         List<SignClassUserVo> classUserList = signClassUserDao.queryClassUserBasicByClassId(classId);
         SignClass signClass = signClassDao.selectById(classId);
+
+        //消耗课时数加一
+        SignClass signClassUpdate = new SignClass();
+        signClassUpdate.setId(signClass.getId());
+        signClassUpdate.setConsumeHour(signClass.getConsumeHour() + 1);
+        signClassDao.updateById(signClassUpdate);
+
         String timeStr = cn.hutool.core.date.DateUtil.format(startTime, "yyyy-MM-dd HH:mm")
                 + "~" + cn.hutool.core.date.DateUtil.format(endTime, "HH:mm");
 
@@ -93,8 +104,21 @@ public class SignTeacherService {
         return result;
     }
 
+    @Transactional
     public MData deleteStudent(SignClassUserDto deleteStudentDto) {
-        return new MData();
+        //
+        MData result = new MData();
+        SignClassUser classUser = signClassUserDao.selectById(deleteStudentDto.getClassUserId());
+        if (classUser == null) {
+            log.info("classUserId {}", deleteStudentDto.getClassUserId());
+            return result.error("classUserId is error");
+        }
+        signClassUserDao.deleteById(classUser);
+
+        Integer item = signClassTaskRecordDao.delete(new QueryWrapper<SignClassRecord>()
+                .eq("class_id", classUser.getClassId()).eq("uid", classUser.getUid()));
+
+        return result;
     }
 
     public MData userSignDetail(SignClassUserDto deleteStudentDto) {
@@ -123,7 +147,11 @@ public class SignTeacherService {
         MData result = new MData();
         List<SignClassUser> classUserList = signClassUserDao.queryClassUserByClassId(signDetailDto.getClassId());
 
-        result.setData(classUserList);
+        SignClass signClass = signClassDao.selectById(signDetailDto.getClassId());
+        Map<String, Object> data = new HashMap<>();
+        data.put("className", signClass.getClassName());
+        data.put("classUserList", classUserList);
+        result.setData(data);
         return result;
     }
 
@@ -183,8 +211,13 @@ public class SignTeacherService {
                 break;
             }
         }
-        if (signClassTask != null) {
-            List<SignClassRecord> classTaskList = signClassTaskRecordDao.queryRecordByTaskId(classId, signClassTask.getId());
+        SignClassTask lastSignClass = null;
+        if (!signTasks.isEmpty()) {
+            lastSignClass = signTasks.get(signTasks.size() - 1);
+        }
+
+        if (lastSignClass != null) {
+            List<SignClassRecord> classTaskList = signClassTaskRecordDao.queryRecordByTaskId(classId, lastSignClass.getId());
             signUsers = classTaskList.stream().collect(Collectors.toMap(SignClassRecord::getUid, t -> t));
         }
         List<SignClassUser> classUserList = signClassUserDao.queryClassUserByClassId(classId);
@@ -205,6 +238,9 @@ public class SignTeacherService {
         data.put("signDate", signClassTask == null ? "" : cn.hutool.core.date.DateUtil.format(signClassTask.getStartTime(), "yyyy-MM-dd"));
         data.put("signStartTime", signClassTask == null ? "" : cn.hutool.core.date.DateUtil.format(signClassTask.getStartTime(), "HH:mm"));
         data.put("signEndTime", signClassTask == null ? "" : cn.hutool.core.date.DateUtil.format(signClassTask.getEndTime(), "HH:mm"));
+
+        data.put("prevSignStartTime", lastSignClass == null ? "" : cn.hutool.core.date.DateUtil.format(lastSignClass.getStartTime(), "yyyy-MM-dd HH:mm:ss"));
+        data.put("prevSignEndTime", lastSignClass == null ? "" : cn.hutool.core.date.DateUtil.format(lastSignClass.getEndTime(), "yyyy-MM-dd HH:mm:ss"));
 
         result.setData(data);
         return result;

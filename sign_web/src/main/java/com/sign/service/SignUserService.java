@@ -48,11 +48,15 @@ public class SignUserService {
         //加入的班级
         List<SignIndexVo> indexVoList = signClassUserDao.querySignIndexVo(userId);
         for (SignIndexVo signIndexVo : indexVoList) {
+            Date createTime = cn.hutool.core.date.DateUtil.parse(signIndexVo.getCreateTime());
+            signIndexVo.setCreateTime(cn.hutool.core.date.DateUtil.format(createTime, "yyyy-MM-dd HH:mm:ss"));
             signIndexVo.setIsCreated(false);
         }
         //创建的班级
         List<SignIndexVo> createVoList = signClassUserDao.querySignClassIndexVo(userId);
         for (SignIndexVo signIndexVo : createVoList) {
+            Date createTime = cn.hutool.core.date.DateUtil.parse(signIndexVo.getCreateTime());
+            signIndexVo.setCreateTime(cn.hutool.core.date.DateUtil.format(createTime, "yyyy-MM-dd HH:mm:ss"));
             signIndexVo.setIsCreated(true);
         }
         indexVoList.addAll(createVoList);
@@ -92,7 +96,7 @@ public class SignUserService {
         signClass.setStatus(Constants.CLASS_ACTIVE);
 
         signClassDao.insert(signClass);
-
+        result.put("classId", signClass.getId());
         return result;
     }
 
@@ -164,9 +168,13 @@ public class SignUserService {
                 break;
             }
         }
+        SignClassTask lastSignClass = null;
+        if (!signTasks.isEmpty()) {
+            lastSignClass = signTasks.get(signTasks.size() - 1);
+        }
         Map<Integer, SignClassRecord> signUsers = new HashMap<>();
-        if (signClassTask != null) {
-            List<SignClassRecord> classTaskList = signClassTaskRecordDao.queryRecordByTaskId(classId, signClassTask.getId());
+        if (lastSignClass != null) {
+            List<SignClassRecord> classTaskList = signClassTaskRecordDao.queryRecordByTaskId(classId, lastSignClass.getId());
             signUsers = classTaskList.stream().collect(Collectors.toMap(SignClassRecord::getUid, t -> t));
         }
 
@@ -176,7 +184,8 @@ public class SignUserService {
         List<Map<String, Object>> userList = new ArrayList<>();
         for (SignClassUser signClassUser : classUserList) {
             Map<String, Object> user = new HashMap<>();
-            user.put("sId", signClassUser.getId());
+            user.put("sId", signClassUser.getUid());
+            user.put("classUserId", signClassUser.getId());
             user.put("sNo", signClassUser.getUserNo());
             user.put("name", signClassUser.getStudentName());
             user.put("credit", signClassUser.getScore().toString());
@@ -198,6 +207,9 @@ public class SignUserService {
         data.put("canSignTaskId", signClassTask == null ? 0 : signClassTask.getId());
         data.put("signStartTime", signClassTask == null ? "" : cn.hutool.core.date.DateUtil.format(signClassTask.getStartTime(), "HH:mm"));
         data.put("signEndTime", signClassTask == null ? "" : cn.hutool.core.date.DateUtil.format(signClassTask.getEndTime(), "HH:mm"));
+
+        data.put("prevSignStartTime", lastSignClass == null ? "" : cn.hutool.core.date.DateUtil.format(lastSignClass.getStartTime(), "yyyy-MM-dd HH:mm:ss"));
+        data.put("prevSignEndTime", lastSignClass == null ? "" : cn.hutool.core.date.DateUtil.format(lastSignClass.getEndTime(), "yyyy-MM-dd HH:mm:ss"));
 
         data.put("isSign", currentUser);
 
@@ -240,7 +252,6 @@ public class SignUserService {
             return result.error("该用户未加入该班级");
         }
 
-
         //判断距离是否能签到
         SignClass signClass = signClassDao.selectById(signTask.getClassId());
         Double latitude = getLocationDouble(signDetailDto.getLatitude());
@@ -250,9 +261,9 @@ public class SignUserService {
         BigDecimal distanceKm = BigDecimal.valueOf(distance);
         //km
         BigDecimal limit = BigDecimal.valueOf(signClass.getLimitArea()).multiply(BigDecimal.valueOf(1000));
+        log.info("distance {} limit {}", distanceKm, limit);
         if (distanceKm.compareTo(limit) > 0) {
-            log.info("distance {} limit {}", distanceKm, limit);
-            return result.error("不在签到距离");
+            return result.error("不在签到范围内");
         }
         SignClassRecord addRecord = new SignClassRecord();
         addRecord.setLatitude(latitude);
@@ -264,10 +275,10 @@ public class SignUserService {
 
         signClassTaskRecordDao.insert(addRecord);
 
-
         signClassUser.setScore(signClassUser.getScore() + signClass.getScore());
         signClassUserDao.updateById(signClassUser);
 
+        result.put("score", signClass.getScore());
         return result;
     }
 
@@ -320,7 +331,7 @@ public class SignUserService {
         MData result = new MData();
         List<SignClassUser> classUserList = signClassUserDao.queryClassUserByClassId(signDetailDto.getClassId());
         SignClass signClass = signClassDao.selectById(signDetailDto.getClassId());
-        Map<String,Object>data = new HashMap<>();
+        Map<String, Object> data = new HashMap<>();
         data.put("className", signClass.getClassName());
         data.put("scoreList", classUserList);
 

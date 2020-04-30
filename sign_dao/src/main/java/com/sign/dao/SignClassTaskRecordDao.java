@@ -30,4 +30,5 @@ public interface SignClassTaskRecordDao extends BaseMapper<SignClassRecord> {
 
     @Select("SELECT * FROM sign_class_record WHERE uid=#{uid}  and task_id=#{taskId}")
     SignClassRecord queryUserRecordByTaskId(@Param("uid") Integer uid, @Param("taskId") Integer taskId);
+
 }

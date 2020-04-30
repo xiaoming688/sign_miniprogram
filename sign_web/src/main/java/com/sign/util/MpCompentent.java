@@ -77,6 +77,63 @@ public class MpCompentent {
         return accessToken;
     }
 
+    public static MData sendScoreToOpenId(String accessToken, String openId, String score, Integer consumeHour, String studentName, String signName) {
+        MData result = new MData();
+        try {
+            String urlStr = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=" + accessToken;
+            Http http = new Http(urlStr);
+
+            Map<String, Object> param = new HashMap<String, Object>();
+            param.put("touser", openId);
+            param.put("template_id", "i4DV3Duvd_Y1rRVPeUQByXDmrp03ZlwCE9yVapllrvg");
+
+//            param.put("page", "");
+            //跳转小程序类型：developer为开发版；trial为体验版；formal为正式版；默认为正式版
+            param.put("miniprogram_state", "trial");
+
+            Map<String, Object> action_info = new HashMap();
+
+            Map<String, Object> timeValue = new HashMap();
+            timeValue.put("value", score);
+            action_info.put("phrase1", timeValue);
+
+            Map<String, Object> thing2Value = new HashMap();
+            thing2Value.put("value", consumeHour);
+            action_info.put("number2", thing2Value);
+
+            Map<String, Object> thing5Value = new HashMap();
+            thing5Value.put("value", studentName);
+            action_info.put("thing3", thing5Value);
+
+            Map<String, Object> thing4Value = new HashMap();
+            thing4Value.put("value", signName);
+            action_info.put("thing4", thing4Value);
+
+            param.put("data", action_info);
+
+            JSONObject parseObject = JSONObject.parseObject(JSON.toJSONString(param));
+            StringEntity stringEntity = new StringEntity(parseObject.toString(), Charset.forName("utf-8"));
+
+            stringEntity.setContentEncoding("utf-8");
+            stringEntity.setContentType("application/json");
+
+            JSONObject sendResult = http.doPost(stringEntity).toJsonObject();
+            String code = String.valueOf(sendResult.get("errcode"));
+            log.info("sendResult: " + sendResult + " openId: " + openId);
+            if (!code.equals("0")) {
+                result.error();
+                //找不到抛异常
+                log.error("{}", sendResult);
+            }else{
+                result.ok();
+            }
+        } catch (Exception e) {
+            result.error();
+            log.error(e.getMessage() + ": send message to openId: " + openId);
+        }
+        return result;
+    }
+
     public static MData sendMessageToOpenId(String accessToken, String openId, String timeStr, String className, String teacher, String signName) {
         MData result = new MData();
         try {

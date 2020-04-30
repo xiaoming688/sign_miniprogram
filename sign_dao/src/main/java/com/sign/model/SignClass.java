@@ -15,6 +15,7 @@ import java.util.Date;
 public class SignClass extends BaseModel{
     private Integer uid;
     private Integer classHour;
+    private Integer consumeHour;
 
     private String introduce;
     private String telephone;
@@ -33,4 +34,6 @@ public class SignClass extends BaseModel{
     private Integer score;
 
     private String status;
+
+    private Integer notifyStatus;
 }

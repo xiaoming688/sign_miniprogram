@@ -2,6 +2,8 @@ package com.sign.pojo;
 
 import lombok.Data;
 
+import java.util.Date;
+
 /**
  * @author MM
  * @description
@@ -16,5 +18,7 @@ public class SignIndexVo {
     private String teacherName;
 
     private Boolean isCreated;
+
+    private String createTime;
 
 }
