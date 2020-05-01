@@ -189,7 +189,7 @@ public class SignUserService {
             user.put("classUserId", signClassUser.getId());
             user.put("sNo", signClassUser.getUserNo());
             user.put("name", signClassUser.getStudentName());
-            user.put("credit", signClassUser.getScore().toString());
+            user.put("credit", signClassUser.getScore());
 
             user.put("signed", false);
             if (signUsers.containsKey(signClassUser.getUid())) {
@@ -261,7 +261,7 @@ public class SignUserService {
                 latitude, longitude);
         BigDecimal distanceKm = BigDecimal.valueOf(distance);
         //km
-        BigDecimal limit = BigDecimal.valueOf(signClass.getLimitArea()).multiply(BigDecimal.valueOf(1000));
+        BigDecimal limit = BigDecimal.valueOf(signClass.getLimitArea()).divide(BigDecimal.valueOf(1000));
         log.info("distance {} limit {}", distanceKm, limit);
         if (distanceKm.compareTo(limit) > 0) {
             return result.error("不在签到范围内");
