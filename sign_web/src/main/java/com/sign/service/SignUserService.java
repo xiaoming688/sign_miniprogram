@@ -296,7 +296,7 @@ public class SignUserService {
 
         List<SignClassRecord> recordList = signClassTaskRecordDao.queryUserRecordByClassId(classId, uid);
 
-        List<SignClassTask> taskList = signClassTaskDao.queryTaskByClassId(classId);
+        List<SignClassTask> taskList = signClassTaskDao.queryTaskByClassIdAll(classId);
         Map<Integer, String> taskType = new HashMap<>();
         for (SignClassTask signClassTask : taskList) {
             taskType.put(signClassTask.getId(),
